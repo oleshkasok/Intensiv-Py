@@ -4,6 +4,8 @@ import time
 import math
 import numpy as np
 
+from tracking_client import TrackingClient
+
 
 class handDetector():
     def __init__(self, mode=False, maxHands=2, detectionCon=0.5, trackCon=0.5):
@@ -78,7 +80,7 @@ class handDetector():
             fingers = [0, 0, 0, 0, 0]
         return fingers
 
-    def findDistance(self, p1, p2, img, draw=True,r=15, t=3):
+    def findDistance(self, p1, p2, img, draw=True, r=15, t=3):
         x1, y1 = self.lmList[p1][1:]
         x2, y2 = self.lmList[p2][1:]
         cx, cy = (x1 + x2) // 2, (y1 + y2) // 2
@@ -92,17 +94,29 @@ class handDetector():
 
         return length, img, [x1, y1, x2, y2, cx, cy]
 
+
 def main():
     pTime = 0
     cTime = 0
     cap = cv2.VideoCapture('7Жестов.mp4')
     detector = handDetector()
+
+    cli = TrackingClient()
+    cli.connect()
+    cli.sendString("test")
+    # a = 0
+    # while a < 10000:
+    #     print(a)
+    #     cli.sendString(str(a))
+    #     time.sleep(0.5)
+    #     a += 1
+    cli.close()
     while True:
         success, img = cap.read()
         img = detector.findHands(img)
         lmList, bbox = detector.findPosition(img)
-        if len(lmList) != 0:
-            print(lmList[4])
+        # if len(lmList) != 0:
+        #     print(lmList[4])
 
         cTime = time.time()
         fps = 1 / (cTime - pTime)
@@ -113,6 +127,7 @@ def main():
 
         cv2.imshow("Image", img)
         cv2.waitKey(1)
+
 
 if __name__ == "__main__":
     main()
