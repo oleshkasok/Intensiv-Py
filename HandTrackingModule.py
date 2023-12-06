@@ -101,22 +101,25 @@ def main():
     cap = cv2.VideoCapture('7Жестов.mp4')
     detector = handDetector()
 
-    cli = TrackingClient()
-    cli.connect()
-    cli.sendString("test")
+    #cli = TrackingClient()
+    #cli.connect()
+    #cli.sendString("test")
+    #print(cli.receiveString())
+
+
     # a = 0
     # while a < 10000:
     #     print(a)
     #     cli.sendString(str(a))
     #     time.sleep(0.5)
     #     a += 1
-    cli.close()
+    #cli.close()
     while True:
         success, img = cap.read()
         img = detector.findHands(img)
         lmList, bbox = detector.findPosition(img)
-        # if len(lmList) != 0:
-        #     print(lmList[4])
+        if len(lmList) != 0:
+            print(lmList[4])
 
         cTime = time.time()
         fps = 1 / (cTime - pTime)
