@@ -1,3 +1,4 @@
+import math
 import time
 
 import autopy
@@ -44,6 +45,8 @@ send_pos = False
 mass = []
 flag_delete_point = True
 x1, x2, y1, y2, i, j = 0, 0, 0, 0, 0, 1
+findpoint = False
+index_near_point = 0
 while True:
     success, img = cap.read()
     img = detector.findHands(img)
@@ -71,17 +74,12 @@ while True:
                     print(mass)
             if length > 45:
                 send_pos = False
-        for i in range(1, (len(mass) // 4) + 1):
-            cv2.line(img, (mass[i * 4 - 4], mass[i * 4 - 3]),
-                     (mass[i * 4 - 2], mass[i * 4 - 1]),
-                     (255, 0, 255), 3)
-        for i in range(1, (len(mass)//2)+1):
-            cv2.circle(img, (mass[i * 2 - 2], mass[i * 2 - 1]), 6, (0, 255, 0), cv2.FILLED)
+
         print(fingers)
         if (fingers[0] == 0 and fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 1
                 and fingers[4] == 0 and len(mass) >= 2):
-            #x1, y1 = lmList[4][1:]
-            #x2, y2 = lmList[17][1:]
+            # x1, y1 = lmList[4][1:]
+            # x2, y2 = lmList[17][1:]
             if flag_delete_point:
                 print('вошёл')
                 mass.pop()
@@ -92,18 +90,51 @@ while True:
         if not (0 in fingers):
             flag = False
     else:
-        if fingers[1] == 1:
-            x3 = np.interp(x1, (frameR, wCam - frameR), (0, wScr))
-            y3 = np.interp(y1, (frameR, hCam - frameR), (0, hScr))
-            clocX = plocX + (x3 - plocX) / smoothening
-            clocY = plocY + (y3 - plocY) / smoothening
-
-            autopy.mouse.move(wScr - clocX, clocY)
-            cv2.circle(img, (x1, y1), 15, (255, 0, 255), cv2.FILLED)
-            plocX, plocY = clocX, clocY
+        # if fingers[1] == 1:
+        #     x3 = np.interp(x1, (frameR, wCam - frameR), (0, wScr))
+        #     y3 = np.interp(y1, (frameR, hCam - frameR), (0, hScr))
+        #     clocX = plocX + (x3 - plocX) / smoothening
+        #     clocY = plocY + (y3 - plocY) / smoothening
+        #
+        #     autopy.mouse.move(wScr - clocX, clocY)
+        #     cv2.circle(img, (x1, y1), 15, (255, 0, 255), cv2.FILLED)
+        #     plocX, plocY = clocX, clocY
+        if (fingers[0] == 0 and fingers[1] == 1 and fingers[2] == 0 and fingers[3] == 0
+                and fingers[4] == 0):
+            minlen = 100000
+            for i in range(0, len(mass) - 1, 4):
+                x1 = mass[i]  # x точки
+                y1 = mass[i + 1]  # y точки
+                x2, y2 = lmList[8][1:]  # координаты пальца
+                len_to_point = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)  # расстояние до точки
+                if len_to_point < minlen:
+                    minlen = len_to_point
+                    index_near_point = i  # нижний x (x1) ближайшей точки к пальцу
+                    findpoint = True
+        if (fingers[0] == 0 and fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 0
+                and fingers[4] == 0 and findpoint):
+            x1, y1 = lmList[8][1:]  # координаты пальца
+            length, img, lineInfo = detector.findDistance(8, 12, img)
+            len_of_line = math.sqrt(
+                (mass[index_near_point] - mass[index_near_point + 2]) ** 2 +
+                (mass[index_near_point + 1] - mass[index_near_point + 3]) ** 2)
+            if length < 45:
+                len_to_finger = math.sqrt(
+                    (mass[index_near_point] - x1) ** 2 +
+                    (mass[index_near_point + 1] - y2) ** 2)  # расстояние от нижней точки до пальца
+                percent = round(((len_to_finger / len_of_line) * 100), -1)
+                print(percent)
+                cli.sendString(str(percent))
         if (fingers[0] == 0 and fingers[1] == 0 and fingers[2] == 0 and fingers[3] == 0
                 and fingers[4] == 1):
             flag = True
+
+    for i in range(1, (len(mass) // 4) + 1):
+        cv2.line(img, (mass[i * 4 - 4], mass[i * 4 - 3]),
+                 (mass[i * 4 - 2], mass[i * 4 - 1]),
+                 (255, 0, 255), 3)
+    for i in range(1, (len(mass) // 2) + 1):
+        cv2.circle(img, (mass[i * 2 - 2], mass[i * 2 - 1]), 6, (0, 255, 0), cv2.FILLED)
 
     cTime = time.time()
     fps = 1 / (cTime - pTime)
