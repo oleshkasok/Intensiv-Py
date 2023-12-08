@@ -75,13 +75,13 @@ while True:
             cv2.line(img, (mass[i * 4 - 4], mass[i * 4 - 3]),
                      (mass[i * 4 - 2], mass[i * 4 - 1]),
                      (255, 0, 255), 3)
-            cv2.circle(img, (mass[i * 4 - 4], mass[i * 4 - 3]), 6, (0, 255, 0), cv2.FILLED)
-            cv2.circle(img, (mass[i * 4 - 2], mass[i * 4 - 1]), 6, (0, 255, 0), cv2.FILLED)
+        for i in range(1, (len(mass)//2)+1):
+            cv2.circle(img, (mass[i * 2 - 2], mass[i * 2 - 1]), 6, (0, 255, 0), cv2.FILLED)
         print(fingers)
         if (fingers[0] == 0 and fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 1
-                and fingers[4] == 0 and len(mass) > 2):
-            x1, y1 = lmList[4][1:]
-            x2, y2 = lmList[17][1:]
+                and fingers[4] == 0 and len(mass) >= 2):
+            #x1, y1 = lmList[4][1:]
+            #x2, y2 = lmList[17][1:]
             if flag_delete_point:
                 print('вошёл')
                 mass.pop()
@@ -89,7 +89,7 @@ while True:
                 flag_delete_point = False
         else:
             flag_delete_point = True
-        if not(0 in fingers):
+        if not (0 in fingers):
             flag = False
     else:
         if fingers[1] == 1:
@@ -101,12 +101,15 @@ while True:
             autopy.mouse.move(wScr - clocX, clocY)
             cv2.circle(img, (x1, y1), 15, (255, 0, 255), cv2.FILLED)
             plocX, plocY = clocX, clocY
+        if (fingers[0] == 0 and fingers[1] == 0 and fingers[2] == 0 and fingers[3] == 0
+                and fingers[4] == 1):
+            flag = True
 
-        cTime = time.time()
-        fps = 1 / (cTime - pTime)
-        pTime = cTime
-        cv2.putText(img, str(int(fps)), (20, 50), cv2.FONT_HERSHEY_PLAIN, 3,
-                    (255, 0, 0), 3)
+    cTime = time.time()
+    fps = 1 / (cTime - pTime)
+    pTime = cTime
+    cv2.putText(img, str(int(fps)), (20, 50), cv2.FONT_HERSHEY_PLAIN, 3,
+                (255, 0, 0), 3)
 
-        cv2.imshow("Image", img)
-        cv2.waitKey(1)
+    cv2.imshow("Image", img)
+    cv2.waitKey(1)
