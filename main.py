@@ -48,17 +48,21 @@ x1, x2, y1, y2, i, j = 0, 0, 0, 0, 0, 1
 findpoint = False
 index_near_point = 0
 flip = True
+mode = 1
 while True:
     success, img = cap.read()
     img = detector.findHands(img)
     lmList, bbox = detector.findPosition(img)
     fingers = detector.fingersUp()
     cv2.rectangle(img, (frameR, frameR), (wCam - frameR, hCam - frameR), (255, 0, 255), 2)
+    cv2.putText(img, str(mode), (20, 50), cv2.FONT_HERSHEY_PLAIN, 3,
+                (255, 0, 0), 3)
     if len(lmList) != 0:
         x1, y1 = lmList[8][1:]
         x2, y2 = lmList[12][1:]
         # print(str(x1) + " " + str(y1))
     if flag:
+        mode = 1
         # cli.sendString(str(x1) + ' ' + str(y1) + " " + str(x2) + " " + str(y2))
         if fingers[1] == 1 and fingers[2] == 1:
             length, img, lineInfo = detector.findDistance(8, 12, img)
@@ -91,6 +95,7 @@ while True:
         if not (0 in fingers):
             flag = False
     else:
+        mode = 2
         # if fingers[1] == 1:
         #     x3 = np.interp(x1, (frameR, wCam - frameR), (0, wScr))
         #     y3 = np.interp(y1, (frameR, hCam - frameR), (0, hScr))
@@ -148,11 +153,9 @@ while True:
     for i in range(1, (len(mass) // 2) + 1):
         cv2.circle(img, (mass[i * 2 - 2], mass[i * 2 - 1]), 6, (0, 255, 0), cv2.FILLED)
 
-    cTime = time.time()
-    fps = 1 / (cTime - pTime)
-    pTime = cTime
-    cv2.putText(img, str(int(fps)), (20, 50), cv2.FONT_HERSHEY_PLAIN, 3,
-                (255, 0, 0), 3)
+    # cTime = time.time()
+    # fps = 1 / (cTime - pTime)
+    # pTime = cTime
 
     cv2.imshow("Image", img)
     cv2.waitKey(1)
