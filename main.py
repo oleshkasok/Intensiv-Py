@@ -47,6 +47,7 @@ flag_delete_point = True
 x1, x2, y1, y2, i, j = 0, 0, 0, 0, 0, 1
 findpoint = False
 index_near_point = 0
+flip = True
 while True:
     success, img = cap.read()
     img = detector.findHands(img)
@@ -132,6 +133,13 @@ while True:
         if (fingers[0] == 0 and fingers[1] == 0 and fingers[2] == 0 and fingers[3] == 0
                 and fingers[4] == 1):
             flag = True
+        if (fingers[0] == 1 and fingers[1] == 0 and fingers[2] == 0 and fingers[3] == 0
+                and fingers[4] == 0 and flip):
+            print('Прокрутили ручку')
+            cli.sendString(str('Крути'))
+            flip = False
+        else:
+            flip = True
 
     for i in range(1, (len(mass) // 4) + 1):
         cv2.line(img, (mass[i * 4 - 4], mass[i * 4 - 3]),
