@@ -120,13 +120,13 @@ while True:
                 (mass[index_near_point + 1] - mass[index_near_point + 3]) ** 2)
             if length < 45:
                 len_to_finger = math.sqrt(
-                    (mass[index_near_point + 2] - x1) ** 2 +
-                    (mass[index_near_point + 3] - y2) ** 2)  # расстояние от верхней точки до пальца
+                    (mass[index_near_point] - x1) ** 2 +
+                    (mass[index_near_point + 1] - y2) ** 2)  # расстояние от нижней точки до пальца
                 percent = round(((len_to_finger / len_of_line) * 100), -1)/10
-                if percent > 10:
-                    percent = 10
-                if percent < 0:
-                    percent = 0
+                if percent > 9:
+                    percent = 9
+                if percent < 1:
+                    percent = 1
                 print(percent)
                 cli.sendString(str(percent))
         if (fingers[0] == 0 and fingers[1] == 0 and fingers[2] == 0 and fingers[3] == 0
