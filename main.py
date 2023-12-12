@@ -159,3 +159,5 @@ while True:
 
     cv2.imshow("Image", img)
     cv2.waitKey(1)
+    if cv2.waitKey(1) & 0xFF == 27:
+        break
