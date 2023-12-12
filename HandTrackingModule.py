@@ -61,8 +61,6 @@ class handDetector():
 
         return self.lmList, bbox
 
-    0
-
     def fingersUp(self):
         fingers = []
         if len(self.lmList):
