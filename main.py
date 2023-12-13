@@ -37,7 +37,8 @@ def calibration():
         return False
 
 
-flag = calibration()
+flag = True
+done = True
 click = True
 pos_count = 0
 send_pos = False
@@ -58,6 +59,7 @@ while True:
         cv2.rectangle(img, (frameR, frameR), (wCam - frameR, hCam - frameR), (255, 0, 255), 2)
         cv2.putText(img, str(mode), (20, 50), cv2.FONT_HERSHEY_PLAIN, 3,
                     (255, 0, 0), 3)
+        cv2.line(img, (wCam - 400, 0), (wCam - 400, hCam), (0, 255, 0), 10)
         if len(lmList) != 0:
             x1, y1 = lmList[8][1:]
             x2, y2 = lmList[12][1:]
@@ -158,10 +160,19 @@ while True:
         # cTime = time.time()
         # fps = 1 / (cTime - pTime)
         # pTime = cTime
-
         cv2.imshow("Image", img)
-        cv2.waitKey(1)
+        key = cv2.waitKey(1)
+        if key == ord('q'):
+            break
     finally:
-        print('')
-    if cv2.waitKey(1) & 0xFF == 27:
-        break
+        if not done:
+            print('')
+
+# пофиксить баг с выходом за пределы рычажка
+# каретка работает корректно, но нужно пофиксить баг выше
+# создал линию, нужно проверять, находится ли 13 точка руки за пределами линии, возможно стоит изменить положение линии
+# проверять, в каком направлении движется рука. Вариант... count = 0.
+# Если координата 5 точки движется вперед с небольшой погрешностью (тестить),
+# то count повышать до 5 (тестить). Если 5 набралось, совершать вращение. Затем делать сброс count
+# не придумал, как проверять повторное кручение......
+# спокойной ночи..........
