@@ -3,6 +3,7 @@ import math
 
 import autopy
 import cv2
+import ast
 
 import HandTrackingModule as htm
 from tracking_client import TrackingClient
@@ -17,7 +18,7 @@ pTime = 0
 plocX, plocY = 0, 0
 clocX, clocY = 0, 0
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 cap.set(3, wCam)
 cap.set(4, hCam)
 detector = htm.handDetector(detectionCon=0.7, maxHands=1)
@@ -51,6 +52,9 @@ flip = True
 mode = 1
 while True:
     try:
+        with open('text.txt', 'r') as f:
+            mass = ast.literal_eval(f.read())
+            print(mass)
         success, img = cap.read()
         img = cv2.flip(img, 1)
         img = detector.findHands(img)
@@ -59,7 +63,7 @@ while True:
         cv2.rectangle(img, (frameR, frameR), (wCam - frameR, hCam - frameR), (255, 0, 255), 2)
         cv2.putText(img, str(mode), (20, 50), cv2.FONT_HERSHEY_PLAIN, 3,
                     (255, 0, 0), 3)
-        cv2.line(img, (wCam - 400, 0), (wCam - 400, hCam), (0, 255, 0), 10)
+        cv2.line(img, (wCam - 350, 0), (wCam - 350, hCam), (0, 255, 0), 10)
         if len(lmList) != 0:
             x1, y1 = lmList[8][1:]
             x2, y2 = lmList[12][1:]
@@ -84,17 +88,20 @@ while True:
                     send_pos = False
 
             print(fingers)
-            if (fingers[0] == 0 and fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 1
-                    and fingers[4] == 1 and len(mass) >= 2):
-                # x1, y1 = lmList[4][1:]
-                # x2, y2 = lmList[17][1:]
-                if flag_delete_point:
-                    print('вошёл')
-                    mass.pop()
-                    mass.pop()
-                    flag_delete_point = False
-            else:
-                flag_delete_point = True
+            if fingers[1] == 1:
+                x13, y13 = lmList[13][1:]  # координаты середины руки (примерно)
+                if x13 > wCam - 350:
+                    if (fingers[0] == 0 and fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 1
+                            and fingers[4] == 1 and len(mass) >= 2):
+                        # x1, y1 = lmList[4][1:]
+                        # x2, y2 = lmList[17][1:]
+                        if flag_delete_point:
+                            print('вошёл')
+                            mass.pop()
+                            mass.pop()
+                            flag_delete_point = False
+                    else:
+                        flag_delete_point = True
             if not (0 in fingers):
                 flag = False
         else:
@@ -108,7 +115,9 @@ while True:
             #     autopy.mouse.move(wScr - clocX, clocY)
             #     cv2.circle(img, (x1, y1), 15, (255, 0, 255), cv2.FILLED)
             #     plocX, plocY = clocX, clocY
-            if len(mass) > 39:  # > 39
+            if len(mass) > 3:  # > 39
+                with open("text.txt", "w") as output:
+                    output.write(str(mass))
                 if (fingers[0] == 0 and fingers[1] == 1 and fingers[2] == 0 and fingers[3] == 0
                         and fingers[4] == 0):
                     minlen = 100000
@@ -139,7 +148,7 @@ while True:
                         print(str(number) + " test ")
                         if y1 < mass[index_near_point + 1] and index_near_point < 36:
                             number = 0
-                        if x1 < mass[index_near_point] and index_near_point > 35: # > 35
+                        if x1 < mass[index_near_point] and index_near_point > 3: # > 35
                             number = 0
                         if number > 9:
                             number = 9
@@ -147,13 +156,22 @@ while True:
                             number = 0
                         print(str(int(index_near_point / 4) + 1) + "" + str(number))
                         cli.sendString(str(int(index_near_point / 4) + 1) + "" + str(number))
-                if (fingers[0] == 1 and fingers[1] == 0 and fingers[2] == 0 and fingers[3] == 0
-                        and fingers[4] == 1 and flip):
-                    flip = False
-                    print('Прокрутили ручку')
-                    cli.sendString(str('Крути'))
-                if fingers[0] == 0 and fingers[4] == 0:
-                    flip = True
+                if fingers[2] == 1:
+                    x13, y13 = lmList[13][1:] # координаты середины руки (примерно)
+                    if x13 > wCam - 350:
+
+                        if (fingers[0] == 1 and fingers[1] == 0 and fingers[2] == 0 and fingers[3] == 0
+                                and fingers[4] == 0 and flip):
+                            flip = False
+                            print('Прокрутили ручку вперед')
+                            cli.sendString(str('Прокрутили ручку вперед'))
+                        if (fingers[0] == 1 and fingers[1] == 1 and fingers[2] == 0 and fingers[3] == 0
+                                and fingers[4] == 0 and flip):
+                            flip = False
+                            print('Прокрутили ручку назад')
+                            cli.sendString(str('Прокрутили ручку назад'))
+                    if fingers[0] == 0 and fingers[1] == 0:
+                        flip = True
             if (fingers[0] == 0 and fingers[1] == 0 and fingers[2] == 0 and fingers[3] == 0
                     and fingers[4] == 1):
                 flag = True
