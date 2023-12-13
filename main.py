@@ -17,7 +17,7 @@ pTime = 0
 plocX, plocY = 0, 0
 clocX, clocY = 0, 0
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 cap.set(3, wCam)
 cap.set(4, hCam)
 detector = htm.handDetector(detectionCon=0.7, maxHands=1)
@@ -83,7 +83,7 @@ while True:
 
             print(fingers)
             if (fingers[0] == 0 and fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 1
-                    and fingers[4] == 0 and len(mass) >= 2):
+                    and fingers[4] == 1 and len(mass) >= 2):
                 # x1, y1 = lmList[4][1:]
                 # x2, y2 = lmList[17][1:]
                 if flag_delete_point:
@@ -106,7 +106,7 @@ while True:
             #     autopy.mouse.move(wScr - clocX, clocY)
             #     cv2.circle(img, (x1, y1), 15, (255, 0, 255), cv2.FILLED)
             #     plocX, plocY = clocX, clocY
-            if len(mass) > 7:  # > 39
+            if len(mass) > 39:  # > 39
                 if (fingers[0] == 0 and fingers[1] == 1 and fingers[2] == 0 and fingers[3] == 0
                         and fingers[4] == 0):
                     minlen = 100000
@@ -137,7 +137,7 @@ while True:
                         print(str(number) + " test ")
                         if y1 < mass[index_near_point + 1] and index_near_point < 36:
                             number = 0
-                        if x1 < mass[index_near_point] and index_near_point > 3: # > 35
+                        if x1 < mass[index_near_point] and index_near_point > 35: # > 35
                             number = 0
                         if number > 9:
                             number = 9
