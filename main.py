@@ -108,47 +108,55 @@ while True:
             #     autopy.mouse.move(wScr - clocX, clocY)
             #     cv2.circle(img, (x1, y1), 15, (255, 0, 255), cv2.FILLED)
             #     plocX, plocY = clocX, clocY
-            if (fingers[0] == 0 and fingers[1] == 1 and fingers[2] == 0 and fingers[3] == 0
-                    and fingers[4] == 0):
-                minlen = 100000
-                for i in range(0, len(mass) - 1, 4):
-                    x1 = mass[i]  # x точки
-                    y1 = mass[i + 1]  # y точки
-                    x2, y2 = lmList[8][1:]  # координаты пальца
-                    len_to_point = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)  # расстояние до точки
-                    if len_to_point < minlen:
-                        minlen = len_to_point
-                        index_near_point = i  # нижний x (x1) ближайшей точки к пальцу
-                        findpoint = True
-            if (fingers[0] == 0 and fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 0
-                    and fingers[4] == 0 and findpoint):
-                x1, y1 = lmList[8][1:]  # координаты пальца
-                length, img, lineInfo = detector.findDistance(8, 12, img)
-                len_of_line = math.sqrt(
-                    (mass[index_near_point] - mass[index_near_point + 2]) ** 2 +
-                    (mass[index_near_point + 1] - mass[index_near_point + 3]) ** 2)
-                if length < 45:
-                    len_to_finger = math.sqrt(
-                        (mass[index_near_point] - x1) ** 2 +
-                        (mass[index_near_point + 1] - y2) ** 2)  # расстояние от нижней точки до пальца
-                    percent = round(((len_to_finger / len_of_line) * 100), -1) / 10  # баг, если выше вести палец
-                    # print(percent)
-                    if percent > 9:
-                        percent = 9
-                    if percent < 1:
-                        percent = 1
-                    print(str(int(index_near_point / 4) + 1) + "" + str(percent))
-                    cli.sendString(str(int(index_near_point / 4) + 1) + "" + str(percent))
+            if len(mass) > 7:  # > 39
+                if (fingers[0] == 0 and fingers[1] == 1 and fingers[2] == 0 and fingers[3] == 0
+                        and fingers[4] == 0):
+                    minlen = 100000
+                    for i in range(0, len(mass) - 1, 4):
+                        x1 = mass[i]  # x точки
+                        y1 = mass[i + 1]  # y точки
+                        x2, y2 = lmList[8][1:]  # координаты пальца
+                        len_to_point = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)  # расстояние до точки
+                        if len_to_point < minlen:
+                            minlen = len_to_point
+                            index_near_point = i  # нижний x (x1) ближайшей точки к пальцу
+                            findpoint = True
+                if (fingers[0] == 0 and fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 0
+                        and fingers[4] == 0 and findpoint):
+                    x1, y1 = lmList[8][1:]  # координаты пальца
+                    length, img, lineInfo = detector.findDistance(8, 12, img)
+                    len_of_line = math.sqrt(
+                        (mass[index_near_point] - mass[index_near_point + 2]) ** 2 +
+                        (mass[index_near_point + 1] - mass[index_near_point + 3]) ** 2)
+                    if length < 45:
+                        len_to_finger = math.sqrt(
+                            (mass[index_near_point] - x1) ** 2 +  # чекнуть  mass[index_near_point + 1] - y2
+                            (mass[index_near_point + 1] - y1) ** 2)  # расстояние от верхней точки до пальца
+
+                        number = len_to_finger / len_of_line * 100
+                        print(number)
+                        number = round(((len_to_finger / len_of_line) * 100), -1) / 10
+                        print(str(number) + " test ")
+                        if y1 < mass[index_near_point + 1] and index_near_point < 36:
+                            number = 0
+                        if x1 < mass[index_near_point] and index_near_point > 3: # > 35
+                            number = 0
+                        if number > 9:
+                            number = 9
+                        if number < 1:
+                            number = 0
+                        print(str(int(index_near_point / 4) + 1) + "" + str(number))
+                        cli.sendString(str(int(index_near_point / 4) + 1) + "" + str(number))
+                if (fingers[0] == 1 and fingers[1] == 0 and fingers[2] == 0 and fingers[3] == 0
+                        and fingers[4] == 1 and flip):
+                    flip = False
+                    print('Прокрутили ручку')
+                    cli.sendString(str('Крути'))
+                if fingers[0] == 0 and fingers[4] == 0:
+                    flip = True
             if (fingers[0] == 0 and fingers[1] == 0 and fingers[2] == 0 and fingers[3] == 0
                     and fingers[4] == 1):
                 flag = True
-            if (fingers[0] == 1 and fingers[1] == 0 and fingers[2] == 0 and fingers[3] == 0
-                    and fingers[4] == 1 and flip):
-                flip = False
-                print('Прокрутили ручку')
-                cli.sendString(str('Крути'))
-            if fingers[0] == 0 and fingers[4] == 0:
-                flip = True
 
         for i in range(1, (len(mass) // 4) + 1):
             cv2.line(img, (mass[i * 4 - 4], mass[i * 4 - 3]),
