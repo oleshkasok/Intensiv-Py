@@ -1,4 +1,6 @@
 import math
+from threading import Thread
+
 # import time
 
 import autopy
@@ -18,7 +20,7 @@ pTime = 0
 plocX, plocY = 0, 0
 clocX, clocY = 0, 0
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 cap.set(3, wCam)
 cap.set(4, hCam)
 detector = htm.handDetector(detectionCon=0.7, maxHands=1)
@@ -27,9 +29,7 @@ print(wScr, hScr)
 
 cli = TrackingClient()
 cli.connect()
-
-
-#   cli.sendString("Если вы видите это сообщение, значит клиент точно подключился к серверу")
+cli.sendString("Если вы видите это сообщение, значит клиент точно подключился к серверу")
 
 
 def calibration():
@@ -39,6 +39,20 @@ def calibration():
     else:
         return False
 
+
+def readServer():
+    global stop
+    server_str = cli.receiveString()
+    if len(server_str) > 0:
+        if server_str == 'stop':
+            print('stop')
+            stop = True
+
+
+th = Thread(target=readServer)
+th.start()
+stop = False
+run = True
 flag = False  # сразу в режим работы
 done = True
 click = True
@@ -53,7 +67,8 @@ flip = True
 mode = 1
 read = False
 write = False
-while True:
+
+while run:
     try:
         if not read:
             with open('text.txt', 'r') as f:  # тут читаем файл
@@ -67,10 +82,10 @@ while True:
         cv2.rectangle(img, (frameR, frameR), (wCam - frameR, hCam - frameR), (255, 0, 255), 2)
         cv2.putText(img, str(mode), (20, 50), cv2.FONT_HERSHEY_PLAIN, 3,
                     (255, 0, 0), 3)
-        cv2.line(img, (wCam - 350, 0), (wCam - 350, hCam), (0, 255, 0), 10)
-        cv2.line(img, (wCam - 350, 150), (wCam, 150), (0, 255, 0), 10)
-        cv2.line(img, (wCam - 235, 0), (wCam - 235, 150), (0, 255, 0), 10)
-        cv2.line(img, (wCam - 120, 0), (wCam - 120, 150), (0, 255, 0), 10)
+        cv2.line(img, (450, 0), (450, hCam), (0, 255, 0), 10)
+        # cv2.line(img, (wCam - 350, 150), (wCam, 150), (0, 255, 0), 10)
+        # cv2.line(img, (wCam - 235, 0), (wCam - 235, 150), (0, 255, 0), 10)
+        # cv2.line(img, (wCam - 120, 0), (wCam - 120, 150), (0, 255, 0), 10)
         if len(lmList) != 0:
             x1, y1 = lmList[8][1:]
             x2, y2 = lmList[12][1:]
@@ -97,7 +112,7 @@ while True:
             print(fingers)
             if fingers[1] == 1:
                 x13, y13 = lmList[13][1:]  # координаты середины руки (примерно)
-                if x13 > wCam - 350:
+                if x13 < 450:
                     if (fingers[0] == 0 and fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 1
                             and fingers[4] == 1 and len(mass) >= 2):
                         # x1, y1 = lmList[4][1:]
@@ -114,11 +129,11 @@ while True:
                 write = False
         else:
             mode = 2
+            if not write:
+                with open("text.txt", "w") as output:  # при переходе в режим работы файл сохраняется с настройкой
+                    output.write(str(mass))
+                    write = True
             if len(mass) > 39:  # > 39
-                if not write:
-                    with open("text.txt", "w") as output:  # при переходе в режим работы файл сохраняется с настройкой
-                        output.write(str(mass))
-                        write = True
                 if (fingers[0] == 0 and fingers[1] == 1 and fingers[2] == 0 and fingers[3] == 0
                         and fingers[4] == 0):
                     minlen = 100000
@@ -147,6 +162,11 @@ while True:
                         print(number)
                         number = round(((len_to_finger / len_of_line) * 100), -1) / 10
                         print(str(number) + " test ")
+                        if index_near_point > 35:
+                            len_to_finger = math.sqrt(
+                                (mass[index_near_point + 2] - x1) ** 2 +
+                                (mass[index_near_point + 3] - y1) ** 2)  # расстояние от верхней точки до пальца
+                            number = round(((len_to_finger / len_of_line) * 100), -1) / 10
                         if y1 < mass[index_near_point + 1] and index_near_point < 36:
                             number = 0
                         if x1 < mass[index_near_point] and index_near_point > 35:  # > 35
@@ -155,11 +175,16 @@ while True:
                             number = 9
                         if number < 1:
                             number = 0
+                        if index_near_point > 35:
+                            if number < 1:
+                                number = 1
+                            if number > 8:
+                                number = 8
                         print(str(int(index_near_point / 4) + 1) + "" + str(int(number)))
                         cli.sendString(str(int(index_near_point / 4) + 1) + "" + str(int(number)))
                 if len(lmList) > 0:
                     x13, y13 = lmList[13][1:]  # координаты середины руки (примерно)
-                    if x13 > wCam - 350:
+                    if x13 < 450:
 
                         if (fingers[0] == 0 and fingers[1] == 0 and fingers[2] == 0 and fingers[3] == 0
                                 and fingers[4] == 0 and flip):
@@ -174,17 +199,30 @@ while True:
                         elif (fingers[0] == 1 and fingers[1] == 1 and fingers[2] == 0 and fingers[3] == 0
                               and fingers[4] == 0 and flip):
                             flip = False
-                            print('Прокрутили ручку назад')
+                            print('сбросил результаты')
                             cli.sendString(str('сбросил результаты'))
                         elif (fingers[0] == 1 and fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 0
-                              and fingers[4] == 0):
+                              and fingers[4] == 0 and flip):
+                            print('сбросил обороты')
                             cli.sendString(str('сбросил обороты'))
-                    if fingers[0] == 1 and fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 1 and fingers[4] == 1:
+                            flip = False
+                    if (fingers[0] == 1 and fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 1 and fingers[4] == 1
+                            and not flip):
                         flip = True
+                        cli.sendString('Сброс')
+                        print('Сброс')
+                    if (fingers[0] == 0 and fingers[1] == 1 and fingers[2] == 1 and fingers[3] == 1
+                            and fingers[4] == 0 and flip):
+                        cli.sendString('Справка')
+                        print('Справка')
+                        flip = False
             if (fingers[0] == 0 and fingers[1] == 0 and fingers[2] == 0 and fingers[3] == 0
                     and fingers[4] == 1):
                 flag = False
-
+        if len(lmList) > 0:
+            cli.sendString('Рука обнаружена')
+        else:
+            cli.sendString('Рука не обнаружена')
         for i in range(1, (len(mass) // 4) + 1):
             cv2.line(img, (mass[i * 4 - 4], mass[i * 4 - 3]),
                      (mass[i * 4 - 2], mass[i * 4 - 1]),
@@ -199,10 +237,8 @@ while True:
         key = cv2.waitKey(1)
         if key == ord('q'):
             break
-        # if cli.receiveString() == 'stop':
-        #     print(cli.receiveString())
-        #     break
-
+        if stop:
+            break
     finally:
         if not done:
             print('')
