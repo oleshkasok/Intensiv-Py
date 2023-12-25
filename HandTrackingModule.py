@@ -2,9 +2,6 @@ import cv2
 import mediapipe as mp
 import time
 import math
-import numpy as np
-
-from tracking_client import TrackingClient
 
 
 class handDetector():
@@ -96,22 +93,9 @@ class handDetector():
 def main():
     pTime = 0
     cTime = 0
-    cap = cv2.VideoCapture('7Жестов.mp4')
+    cap = cv2.VideoCapture(0)
     detector = handDetector()
 
-    #cli = TrackingClient()
-    #cli.connect()
-    #cli.sendString("test")
-    #print(cli.receiveString())
-
-
-    # a = 0
-    # while a < 10000:
-    #     print(a)
-    #     cli.sendString(str(a))
-    #     time.sleep(0.5)
-    #     a += 1
-    #cli.close()
     while True:
         success, img = cap.read()
         img = detector.findHands(img)
