@@ -1,4 +1,6 @@
 import math
+import os
+import sys
 from threading import Thread
 
 import cv2
@@ -56,6 +58,7 @@ write = False # Флаг для записи файла
 while True:
     # Читаем файл с координатами точек 1 раз
     if not read:
+        os.chdir(os.path.dirname(os.path.abspath(__file__)))
         with open('text.txt', 'r') as f:
             mass = ast.literal_eval(f.read())
             read = True
@@ -111,7 +114,8 @@ while True:
     else: # Для режима работы
         mode = 2
         if not write:
-            with open("text.txt", "w") as output:  # при переходе в режим работы файл сохраняется с настройкой
+            with open('text.txt', 'w') as output:  # при переходе в
+                # режим работы файл сохраняется с настройкой
                 output.write(str(mass))
                 write = True
         if len(mass) > 39:  # Если выставили как минимум 10 точек
